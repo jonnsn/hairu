@@ -16,6 +16,7 @@ namespace PAGEmachine\Hairu\ViewHelpers\Form;
  */
 
 use PAGEmachine\Hairu\LoginType;
+use TYPO3\CMS\Extbase\Mvc\Web\Routing\UriBuilder;
 use TYPO3\CMS\Fluid\Core\Rendering\RenderingContext;
 use TYPO3Fluid\Fluid\Core\ViewHelper\AbstractTagBasedViewHelper;
 
@@ -37,7 +38,7 @@ abstract class AbstractAuthenticationFormViewHelper extends AbstractTagBasedView
         $this->registerArgument('object', 'mixed', 'Object to use for the form. Use in conjunction with the "property" attribute on the sub tags');
         $this->registerArgument('pageType', 'int', 'Target page type', false, 0);
         $this->registerArgument('noCache', 'bool', 'set this to disable caching for the target page. You should not need this.', false, false);
-        $this->registerArgument('noCacheHash', 'bool', 'set this to suppress the cHash query parameter created by TypoLink. You should not need this.', false, false);
+        $this->registerArgument('noCacheHash', 'bool', 'set this to suppress the cHash query parameter created by TypoLink. You should not need this. (obsolete)', false, false);
         $this->registerArgument('section', 'string', 'The anchor to be added to the action URI (only active if $actionUri is not set)', false, '');
         $this->registerArgument('format', 'string', 'The requested format (e.g. ".html") of the target page (only active if $actionUri is not set)', false, '');
         $this->registerArgument('additionalParams', 'array', 'additional action URI query parameters that won\'t be prefixed like $arguments (overrule $arguments) (only active if $actionUri is not set)', false, []);
@@ -65,12 +66,12 @@ abstract class AbstractAuthenticationFormViewHelper extends AbstractTagBasedView
         if ($this->hasArgument('actionUri')) {
             $formActionUri = $this->arguments['actionUri'];
         } else {
+            /** @var UriBuilder $formActionUri */
             $formActionUri = $this->getUriBuilder()
                 ->reset()
                 ->setTargetPageUid((int)$this->arguments['pageUid'])
                 ->setTargetPageType($this->arguments['pageType'])
                 ->setNoCache($this->arguments['noCache'])
-                ->setUseCacheHash(!$this->arguments['noCacheHash'])
                 ->setSection($this->arguments['section'])
                 ->setCreateAbsoluteUri($this->arguments['absolute'])
                 ->setArguments((array) $this->arguments['additionalParams'])
@@ -121,6 +122,6 @@ abstract class AbstractAuthenticationFormViewHelper extends AbstractTagBasedView
             return $this->renderingContext->getControllerContext()->getUriBuilder();
         }
 
-        return $this->controllerContext->getUriBuilder();
+        return $this->renderingContext->getControllerContext()->getUriBuilder();
     }
 }

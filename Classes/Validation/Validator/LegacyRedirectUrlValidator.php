@@ -58,7 +58,7 @@ class LegacyRedirectUrlValidator extends RedirectUrlValidator
                     // strip trailing slashes (if given)
                     $domainName = rtrim($localDomain['domainName'], '/');
 
-                    if (GeneralUtility::isFirstPartOfStr($host . $path . '/', $domainName . '/')) {
+                    if (\str_starts_with($host . $path . '/', $domainName . '/')) {
                         return true;
                     }
                 }

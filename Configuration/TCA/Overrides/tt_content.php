@@ -1,9 +1,9 @@
 <?php
 
-defined('TYPO3_MODE') or die();
+defined('TYPO3') or die();
 
 \TYPO3\CMS\Extbase\Utility\ExtensionUtility::registerPlugin(
-    'PAGEmachine.Hairu',
+    'Hairu',
     'Auth',
     'LLL:EXT:hairu/Resources/Private/Language/locallang_db.xlf:plugin.auth'
 );
@@ -11,7 +11,7 @@ defined('TYPO3_MODE') or die();
 $GLOBALS['TCA']['tt_content']['types']['list']['subtypes_excludelist']['hairu_auth'] = 'select_key,recursive';
 
 \TYPO3\CMS\Extbase\Utility\ExtensionUtility::registerPlugin(
-    'PAGEmachine.Hairu',
+    'Hairu',
     'Password',
     'LLL:EXT:hairu/Resources/Private/Language/locallang_db.xlf:plugin.password'
 );

@@ -42,14 +42,14 @@ final class SwiftmailerMailMessageBuilder implements MailMessageBuilderInterface
 
     public function text(string $body): MailMessageBuilderInterface
     {
-        $this->message->setBody($body, 'text/plain');
+        $this->message->text($body);
 
         return $this;
     }
 
     public function html(string $body): MailMessageBuilderInterface
     {
-        $this->message->addPart($body, 'text/html');
+        $this->message->html($body);
 
         return $this;
     }
