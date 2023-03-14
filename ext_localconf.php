@@ -1,31 +1,32 @@
 <?php
 
-defined('TYPO3_MODE') or die();
+defined('TYPO3') or die();
 
 \TYPO3\CMS\Extbase\Utility\ExtensionUtility::configurePlugin(
-    'PAGEmachine.Hairu',
+    'Hairu',
     'Auth',
     [
-        'Authentication' => 'showLoginForm, showLogoutForm, showPasswordResetForm, startPasswordReset, completePasswordReset',
+        \PAGEmachine\Hairu\Controller\AuthenticationController::class => 'showLoginForm, showLogoutForm, showPasswordResetForm, startPasswordReset, completePasswordReset',
     ],
     [
-        'Authentication' => 'showLoginForm, showLogoutForm, showPasswordResetForm, startPasswordReset, completePasswordReset',
+        \PAGEmachine\Hairu\Controller\AuthenticationController::class => 'showLoginForm, showLogoutForm, showPasswordResetForm, startPasswordReset, completePasswordReset',
     ]
 );
 
 \TYPO3\CMS\Extbase\Utility\ExtensionUtility::configurePlugin(
-    'PAGEmachine.Hairu',
+    'Hairu',
     'Password',
     [
-        'Password' => 'showPasswordUpdateForm,updatePassword',
+        \PAGEmachine\Hairu\Controller\PasswordController::class => 'showPasswordUpdateForm,updatePassword',
     ],
     [
-        'Password' => 'showPasswordUpdateForm,updatePassword',
+        \PAGEmachine\Hairu\Controller\PasswordController::class => 'showPasswordUpdateForm,updatePassword',
     ]
 );
 
 // Cache configuration
-if (!is_array($GLOBALS['TYPO3_CONF_VARS']['SYS']['caching']['cacheConfigurations']['hairu_token'])) {
+if (!isset($GLOBALS['TYPO3_CONF_VARS']['SYS']['caching']['cacheConfigurations']['hairu_token']) ||
+    !is_array($GLOBALS['TYPO3_CONF_VARS']['SYS']['caching']['cacheConfigurations']['hairu_token'])) {
     $GLOBALS['TYPO3_CONF_VARS']['SYS']['caching']['cacheConfigurations']['hairu_token'] = [
         'backend' => \TYPO3\CMS\Core\Cache\Backend\Typo3DatabaseBackend::class,
         'frontend' => \TYPO3\CMS\Core\Cache\Frontend\VariableFrontend::class,

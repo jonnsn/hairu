@@ -14,7 +14,11 @@ namespace PAGEmachine\Hairu\Controller;
  * For the full copyright and license information, please read the
  * LICENSE.txt file that was distributed with this source code.
  */
-
+use TYPO3\CMS\Core\Log\Logger;
+use TYPO3\CMS\Core\Cache\Frontend\FrontendInterface;
+use Psr\Http\Message\ResponseInterface;
+use TYPO3\CMS\Extbase\Http\ForwardResponse;
+use TYPO3\CMS\Core\Messaging\AbstractMessage;
 use PAGEmachine\Hairu\LoginType;
 use PAGEmachine\Hairu\Mail\MailMessageBuilderInterface;
 use TYPO3\CMS\Core\Cache\CacheManager;
@@ -81,17 +85,17 @@ class AuthenticationController extends AbstractController
     }
 
     /**
-     * @var \TYPO3\CMS\Core\Log\Logger
+     * @var Logger
      */
     protected $logger;
 
     /**
-     * @var \TYPO3\CMS\Core\Cache\Frontend\FrontendInterface
+     * @var FrontendInterface
      */
     protected $tokenCache;
 
     /**
-     * @param \TYPO3\CMS\Core\Log\LogManager $logManager
+     * @param LogManager $logManager
      */
     public function injectLogManager(LogManager $logManager)
     {
@@ -99,7 +103,7 @@ class AuthenticationController extends AbstractController
     }
 
     /**
-     * @param \TYPO3\CMS\Core\Cache\CacheManager $cacheManager
+     * @param CacheManager $cacheManager
      */
     public function injectCacheManager(CacheManager $cacheManager)
     {
@@ -173,12 +177,12 @@ class AuthenticationController extends AbstractController
     /**
      * Login form view
      *
-     * @return void
+     *
      */
-    public function showLoginFormAction()
+    public function showLoginFormAction(): ResponseInterface
     {
         if ($this->authenticationService->isUserAuthenticated()) {
-            $this->forward('showLogoutForm');
+            return new ForwardResponse('showLogoutForm');
         }
 
         $formData = $this->request->getArgument('formData');
@@ -189,7 +193,7 @@ class AuthenticationController extends AbstractController
                     $this->addLocalizedFlashMessage(
                         'login.failed.message',
                         null,
-                        FlashMessage::ERROR,
+                        AbstractMessage::ERROR,
                         'login.failed.title'
                     );
                     break;
@@ -197,10 +201,11 @@ class AuthenticationController extends AbstractController
                 case LoginType::LOGOUT:
                     $this->emitAfterLogoutSignal();
 
-                    $this->addLocalizedFlashMessage('logout.successful', null, FlashMessage::INFO);
+                    $this->addLocalizedFlashMessage('logout.successful', null, AbstractMessage::INFO);
                     break;
             }
         }
+        return $this->htmlResponse();
     }
 
     /**
@@ -208,7 +213,7 @@ class AuthenticationController extends AbstractController
      *
      * @return void
      */
-    public function showLogoutFormAction()
+    public function showLogoutFormAction(): ResponseInterface
     {
         $formData = $this->request->getArgument('formData');
         $user = $this->authenticationService->getAuthenticatedUser();
@@ -216,12 +221,13 @@ class AuthenticationController extends AbstractController
         if ($this->authenticationService->isUserAuthenticated() && ($formData['logintype'] ?? null) === LoginType::LOGIN) {
             $this->emitAfterLoginSignal();
 
-            $this->addLocalizedFlashMessage('login.successful', [$user->getUsername()], FlashMessage::OK);
+            $this->addLocalizedFlashMessage('login.successful', [$user->getUsername()], AbstractMessage::OK);
         }
 
         $this->view->assignMultiple([
             'user' => $user,
         ]);
+        return $this->htmlResponse();
     }
 
     /**
@@ -231,15 +237,15 @@ class AuthenticationController extends AbstractController
      * @param bool $start TRUE when starting the reset process, FALSE otherwise
      * @return void
      */
-    public function showPasswordResetFormAction(string $hash = null, bool $start = false)
+    public function showPasswordResetFormAction(string $hash = null, bool $start = false): ResponseInterface
     {
         if ($start) {
-            $this->addLocalizedFlashMessage('resetPassword.start', null, FlashMessage::INFO);
+            $this->addLocalizedFlashMessage('resetPassword.start', null, AbstractMessage::INFO);
         }
 
         if ($hash !== null) {
             if ($this->tokenCache->get($hash) !== false) {
-                $this->addLocalizedFlashMessage('resetPassword.hints', null, FlashMessage::INFO);
+                $this->addLocalizedFlashMessage('resetPassword.hints', null, AbstractMessage::INFO);
 
                 $this->view->assign('hash', $hash);
 
@@ -251,9 +257,10 @@ class AuthenticationController extends AbstractController
                     }
                 }
             } else {
-                $this->addLocalizedFlashMessage('resetPassword.failed.invalid', null, FlashMessage::ERROR);
+                $this->addLocalizedFlashMessage('resetPassword.failed.invalid', null, AbstractMessage::ERROR);
             }
         }
+        return $this->htmlResponse();
     }
 
     /**
@@ -274,7 +281,7 @@ class AuthenticationController extends AbstractController
 
             if ($userPassword === null) {
                 $this->logger->error('Failed to initiate password reset for user "' . $username . '": no password present');
-                $this->addLocalizedFlashMessage('resetPassword.failed.nopassword', null, FlashMessage::ERROR);
+                $this->addLocalizedFlashMessage('resetPassword.failed.nopassword', null, AbstractMessage::ERROR);
                 $this->redirect('showPasswordResetForm');
             }
 
@@ -282,7 +289,7 @@ class AuthenticationController extends AbstractController
 
             if (empty($userEmail)) {
                 $this->logger->error('Failed to initiate password reset for user "' . $username . '": no email address present');
-                $this->addLocalizedFlashMessage('resetPassword.failed.noemail', null, FlashMessage::ERROR);
+                $this->addLocalizedFlashMessage('resetPassword.failed.noemail', null, AbstractMessage::ERROR);
                 $this->redirect('showPasswordResetForm');
             }
 
@@ -338,12 +345,12 @@ class AuthenticationController extends AbstractController
             }
 
             if (!$mailSent) {
-                $this->addLocalizedFlashMessage('resetPassword.failed.sending', null, FlashMessage::ERROR);
+                $this->addLocalizedFlashMessage('resetPassword.failed.sending', null, AbstractMessage::ERROR);
                 $this->redirect('showPasswordResetForm');
             }
         }
 
-        $this->addLocalizedFlashMessage('resetPassword.started', null, FlashMessage::INFO);
+        $this->addLocalizedFlashMessage('resetPassword.started', null, AbstractMessage::INFO);
         $this->redirect('showPasswordResetForm');
     }
 
@@ -395,18 +402,18 @@ class AuthenticationController extends AbstractController
 
                     if ($this->getSettingValue('passwordReset.loginOnSuccess')) {
                         $this->authenticationService->authenticateUser($user);
-                        $this->addLocalizedFlashMessage('resetPassword.completed.login', null, FlashMessage::OK);
+                        $this->addLocalizedFlashMessage('resetPassword.completed.login', null, AbstractMessage::OK);
                     } else {
-                        $this->addLocalizedFlashMessage('resetPassword.completed', null, FlashMessage::OK);
+                        $this->addLocalizedFlashMessage('resetPassword.completed', null, AbstractMessage::OK);
                     }
                 } else {
-                    $this->addLocalizedFlashMessage('resetPassword.failed.expired', null, FlashMessage::ERROR);
+                    $this->addLocalizedFlashMessage('resetPassword.failed.expired', null, AbstractMessage::ERROR);
                 }
             } else {
-                $this->addLocalizedFlashMessage('resetPassword.failed.invalid', null, FlashMessage::ERROR);
+                $this->addLocalizedFlashMessage('resetPassword.failed.invalid', null, AbstractMessage::ERROR);
             }
         } else {
-            $this->addLocalizedFlashMessage('resetPassword.failed.expired', null, FlashMessage::ERROR);
+            $this->addLocalizedFlashMessage('resetPassword.failed.expired', null, AbstractMessage::ERROR);
         }
 
         $loginPageUid = $this->getSettingValue('login.page');

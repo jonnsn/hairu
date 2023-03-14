@@ -53,7 +53,7 @@ class AuthenticationService implements SingletonInterface
         }
 
         // @extensionScannerIgnoreLine
-        return $this->getFrontendController()->loginUser;
+        return GeneralUtility::makeInstance(Context::class)->getPropertyFromAspect('frontend.user', 'isLoggedIn');
     }
 
     /**

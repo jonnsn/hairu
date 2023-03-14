@@ -14,7 +14,9 @@ namespace PAGEmachine\Hairu\Controller;
  * For the full copyright and license information, please read the
  * LICENSE.txt file that was distributed with this source code.
  */
-
+use Psr\Http\Message\ResponseInterface;
+use TYPO3\CMS\Core\Messaging\AbstractMessage;
+use TYPO3\CMS\Extbase\Http\ForwardResponse;
 use TYPO3\CMS\Core\Messaging\FlashMessage;
 use TYPO3\CMS\Extbase\Mvc\Exception\NoSuchArgumentException;
 use TYPO3\CMS\Rsaauth\RsaEncryptionDecoder;
@@ -30,7 +32,7 @@ class PasswordController extends AbstractController
      *
      * @return void
      */
-    public function showPasswordUpdateFormAction()
+    public function showPasswordUpdateFormAction(): ResponseInterface
     {
         if (class_exists(RsaEncryptionEncoder::class)) {
             $rsaEncryptionEncoder = $this->objectManager->get(RsaEncryptionEncoder::class);
@@ -44,6 +46,7 @@ class PasswordController extends AbstractController
                 'user' => $user,
             ]);
         }
+        return $this->htmlResponse();
     }
 
     /**
@@ -77,7 +80,7 @@ class PasswordController extends AbstractController
      *
      * @param string $password New password of the user
      * @param string $passwordRepeat Confirmation of the new password
-     * @return void
+     *
      */
     public function updatePasswordAction($password, $passwordRepeat)
     {
@@ -92,8 +95,8 @@ class PasswordController extends AbstractController
 
         $this->authenticationService->invalidateUserSessions($user);
 
-        $this->addLocalizedFlashMessage('updatePassword.completed', [$user->getUsername()], FlashMessage::OK);
+        $this->addLocalizedFlashMessage('updatePassword.completed', [$user->getUsername()], AbstractMessage::OK);
 
-        $this->forward('showPasswordUpdateForm');
+        return new ForwardResponse('showPasswordUpdateForm');
     }
 }

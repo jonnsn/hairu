@@ -14,7 +14,7 @@ namespace PAGEmachine\Hairu\Controller;
  * For the full copyright and license information, please read the
  * LICENSE.txt file that was distributed with this source code.
  */
-
+use TYPO3\CMS\Core\Messaging\AbstractMessage;
 use PAGEmachine\Hairu\Domain\Repository\FrontendUserRepository;
 use PAGEmachine\Hairu\Domain\Service\AuthenticationService;
 use PAGEmachine\Hairu\Domain\Service\PasswordService;
@@ -76,7 +76,7 @@ abstract class AbstractController extends ActionController
      * @param int $severity
      * @param string $messageTitle
      */
-    protected function addLocalizedFlashMessage(string $translationKey, array $translationArguments = null, int $severity = FlashMessage::OK, string $messageTitle = '')
+    protected function addLocalizedFlashMessage(string $translationKey, array $translationArguments = null, int $severity = AbstractMessage::OK, string $messageTitle = '')
     {
         $this->addFlashMessage(
             LocalizationUtility::translate(
